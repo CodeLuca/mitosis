@@ -12,6 +12,9 @@ function setup() {
 
 function draw() {
   background('#333');
+  textSize(32);
+  fill('white');
+  text("Cell Count: " + cells.length, 0, height - 20);
   cells.forEach(function(currentCell) {
     currentCell.move();
   });
@@ -29,12 +32,17 @@ function Cell(x, y, size, cellColor, chromoColor) {
   this.size = size;
   this.cellColor = cellColor;
   this.chromoColor = chromoColor;
+  this.chromoSize = 0.25;
+  this.splitting = false;
 
   this.show = function() {
-    fill(this.cellColor);
+    if(!this.splitting)
+      fill(this.cellColor);
+    else
+      fill('yellow')
     ellipse(this.x, this.y, this.size, this.size)
     fill(this.chromoColor);
-    ellipse(this.x, this.y, this.size / 2, this.size / 2)
+    ellipse(this.x, this.y, this.size * this.chromoSize, this.size * this.chromoSize)
   }
 
   this.move = function() {
@@ -58,14 +66,24 @@ function Cell(x, y, size, cellColor, chromoColor) {
       this.size += 0.2;
     }
 
+    if(this.splitting) {
+      if(this.chromoSize < 0.75) {
+        this.chromoSize += 0.005;
+      } else if(this.chromoSize >= 0.75) {
+        cells.push(new Cell(this.x, this.y, this.size / 2, this.cellColor, this.chromoColor));
+        this.size /= 2;
+        this.splitting = false;
+        this.chromoSize = 0.25;
+      }
+    }
+
     this.show();
   }
 
   this.clicked = function() {
     var d = dist(mouseX, mouseY, this.x, this.y);
     if(d < this.size && this.size >= maxSize) {
-      cells.push(new Cell(this.x, this.y, this.size / 2, this.cellColor, this.chromoColor));
-      this.size /= 2;
+      this.splitting = true;
     }
   }
 }
